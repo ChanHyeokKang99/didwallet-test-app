@@ -1,8 +1,9 @@
 import axios from "axios";
+import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
 const restful = async (method: "GET" | "POST", uri: string, params: any, form?: string) => {
-  let url = "http://localhost:8080/" + uri;
+  let url = "http://192.168.0.10:8080/api" + uri;
   let result: any;
   let formData = new FormData();
   if (form) {
@@ -20,15 +21,20 @@ const restful = async (method: "GET" | "POST", uri: string, params: any, form?: 
         result = await axios.get(url, {
           params: params,
           headers: {
-            Authorization: "Bearer" + localStorage.getItem("token"),
+            Authorization: "Bearer " + SecureStore.getItem("token") || "",
             // 추후 JWT token 적용
           },
         });
         break;
       case "POST":
         if (!form) {
-          result = await axios.post(url, params);
-          // { headers: {}} 추후 JWT token 적용
+          result = await axios.post(url, params, {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + SecureStore.getItem("token") || "",
+              // 추후 JWT token 적용
+            },
+          });
         } else {
           result = await axios.post(url, formData, { headers: { "Content-Type": "multipart/form-data" } });
         }

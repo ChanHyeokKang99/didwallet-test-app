@@ -22,7 +22,8 @@ import { ThemedView } from "../components/ThemedView";
 import { useThemeColor } from "../hooks/useThemeColor";
 
 // 샘플 데이터에서 티켓 찾기 (실제로는 API 호출)
-import { RootStackParamList, SAMPLE_TICKETS, Ticket } from "./HomeScreen";
+import restful from "@/services/Restful";
+import { RootStackParamList, Ticket } from "./HomeScreen";
 
 // QR 생성 단계
 enum QRStep {
@@ -76,13 +77,12 @@ export default function TicketQRScreen({ route, navigation }: TicketQRScreenProp
     const loadTicket = async () => {
       try {
         // 실제로는 API 호출
-        setTimeout(() => {
-          const foundTicket = SAMPLE_TICKETS.find((t) => t.id === ticketId);
-          if (foundTicket) {
-            setTicket(foundTicket);
-          }
-          setLoading(false);
-        }, 500);
+        const res = await restful("GET", "/booking/" + ticketId, {});
+        // const foundTicket = res.data.find((t: any) => t.id === ticketId);
+        // if (foundTicket) {
+        setTicket(res.data);
+        // }
+        setLoading(false);
       } catch (error) {
         console.error("티켓 로딩 오류:", error);
         setLoading(false);

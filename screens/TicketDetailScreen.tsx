@@ -19,7 +19,8 @@ import { ThemedView } from "../components/ThemedView";
 import { useThemeColor } from "../hooks/useThemeColor";
 
 // 샘플 데이터에서 티켓 찾기 (실제로는 API 호출)
-import { RootStackParamList, SAMPLE_TICKETS, Ticket } from "./HomeScreen";
+import restful from "@/services/Restful";
+import { RootStackParamList, Ticket } from "./HomeScreen";
 
 type TicketDetailScreenProps = {
   navigation: NativeStackNavigationProp<RootStackParamList, "TicketDetail">;
@@ -40,13 +41,19 @@ export default function TicketDetailScreen({ route, navigation }: TicketDetailSc
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return { bgColor: "#E1F5E9", textColor: "#0C6B39" };
+        return { bgColor: "#E6F7E9", textColor: "#228B22" }; // 활성: 연두색 배경, 진한 녹색 텍스트
+      case "upcoming":
+        return { bgColor: "#E0F2F7", textColor: "#2196F3" }; // 예정: 연한 하늘색 배경, 파란색 텍스트
       case "used":
-        return { bgColor: "#E5E9F0", textColor: "#4F5E71" };
+        return { bgColor: "#F0F0F0", textColor: "#757575" }; // 사용됨: 밝은 회색 배경, 중간 회색 텍스트
+      case "completed":
+        return { bgColor: "#E8F5E9", textColor: "#607D8B" }; // 완료됨: 매우 연한 녹색-회색 배경, 청회색 텍스트
       case "expired":
-        return { bgColor: "#FDEEEE", textColor: "#B42318" };
+        return { bgColor: "#FCE4EC", textColor: "#D32F2F" }; // 만료됨: 연한 분홍색 배경, 진한 빨간색 텍스트
+      case "cancelled":
+        return { bgColor: "#FCE4EC", textColor: "#D32F2F" }; // 취소됨: 연한 분홍색 배경, 진한 빨간색 텍스트
       default:
-        return { bgColor: "#E5E9F0", textColor: "#4F5E71" };
+        return { bgColor: "#F0F0F0", textColor: "#757575" }; // 기본값: 밝은 회색 배경, 중간 회색 텍스트
     }
   };
 
@@ -55,6 +62,8 @@ export default function TicketDetailScreen({ route, navigation }: TicketDetailSc
     switch (type) {
       case "concert":
         return "#7C3AED";
+      case "movie":
+        return "#2563EB";
       case "sports":
         return "#16A34A";
       case "exhibition":
@@ -72,6 +81,12 @@ export default function TicketDetailScreen({ route, navigation }: TicketDetailSc
         return "사용됨";
       case "expired":
         return "만료됨";
+      case "cancelled":
+        return "취소됨";
+      case "completed":
+        return "완료됨";
+      case "upcoming":
+        return "예정됨";
       default:
         return "알 수 없음";
     }
@@ -82,13 +97,11 @@ export default function TicketDetailScreen({ route, navigation }: TicketDetailSc
     const loadTicket = async () => {
       try {
         // 실제로는 API 호출
-        setTimeout(() => {
-          const foundTicket = SAMPLE_TICKETS.find((t) => t.id === ticketId);
-          if (foundTicket) {
-            setTicket(foundTicket);
-          }
-          setLoading(false);
-        }, 500);
+        const res = await restful("GET", "/booking/" + ticketId, {});
+        if (res.data) {
+          setTicket(res.data);
+        }
+        setLoading(false);
       } catch (error) {
         console.error("티켓 로딩 오류:", error);
         setLoading(false);

@@ -1,5 +1,6 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import restful from "@/services/Restful";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import * as SecureStore from "expo-secure-store";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import { Platform, SafeAreaView, StyleSheet, View } from "react-native";
@@ -108,12 +109,14 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
         // 실제 구현에서는 API 호출로 티켓 목록 가져오기
         // 여기서는 샘플 데이터 사용
+        const res = await restful("GET", "/booking", {});
+        setTickets(res.data || []);
 
         // AsyncStorage에서 VC 목록 가져오기
         const vcs = await getVCs();
         console.log("저장된 VC 개수:", vcs.length);
 
-        setTickets(SAMPLE_TICKETS);
+        // setTickets(SAMPLE_TICKETS);
         setIsLoading(false);
       } catch (error) {
         console.error("티켓 로딩 오류:", error);
@@ -132,9 +135,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       // AsyncStorage에서 VC 목록 가져오기
       const vcs = await getVCs();
       console.log("새로고침 - 저장된 VC 개수:", vcs.length);
-
+      const res = await restful("GET", "/booking", {});
       // 실제 구현에서는 API 재호출
-      setTickets([...SAMPLE_TICKETS]);
+      setTickets(res.data);
       setRefreshing(false);
     } catch (error) {
       console.error("새로고침 오류:", error);
@@ -150,7 +153,8 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
   const handleLogout = async () => {
     // 로그아웃 처리
-    await AsyncStorage.removeItem("token");
+    await SecureStore.deleteItemAsync("token");
+    await SecureStore.deleteItemAsync("refreshToken");
     navigation.replace("Login");
   };
 
@@ -171,7 +175,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
         <View style={styles.content}>
           <TicketList
-            tickets={tickets}
+            tickets={tickets || []}
             isLoading={isLoading}
             onTicketPress={handleTicketPress}
             onRefresh={handleRefresh}

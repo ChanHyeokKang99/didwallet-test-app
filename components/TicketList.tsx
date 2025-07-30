@@ -23,6 +23,8 @@ export function TicketList({ tickets, isLoading, onTicketPress, onRefresh, refre
     { label: "콘서트", value: "concert" },
     { label: "스포츠", value: "sports" },
     { label: "전시회", value: "exhibition" },
+    { label: "팬미팅", value: "fanmeeting" },
+    { label: "뮤지컬", value: "musical" },
   ];
 
   const filteredTickets = activeFilter ? tickets.filter((ticket) => ticket.type === activeFilter) : tickets;
@@ -74,7 +76,7 @@ export function TicketList({ tickets, isLoading, onTicketPress, onRefresh, refre
       <FlatList
         data={filteredTickets}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
+        renderItem={({ item }: any) => (
           <TicketCard ticket={item} onPress={onTicketPress} onVCStatusChange={handleVCStatusChange} />
         )}
         contentContainerStyle={styles.listContent}

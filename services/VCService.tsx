@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 import { Ticket } from "../components/TicketCard";
 
 // VC 관련 스토리지 키
@@ -61,11 +61,11 @@ export const saveVC = async (vc: VerifiableCredential): Promise<boolean> => {
     if (exists) {
       // 이미 존재하면 업데이트
       const updatedVCs = existingVCs.map((existingVC) => (existingVC.id === vc.id ? vc : existingVC));
-      await AsyncStorage.setItem(VC_STORAGE_KEY, JSON.stringify(updatedVCs));
+      await SecureStore.setItemAsync(VC_STORAGE_KEY, JSON.stringify(updatedVCs));
     } else {
       // 새로 추가
       existingVCs.push(vc);
-      await AsyncStorage.setItem(VC_STORAGE_KEY, JSON.stringify(existingVCs));
+      await SecureStore.setItemAsync(VC_STORAGE_KEY, JSON.stringify(existingVCs));
     }
     return true;
   } catch (error) {
@@ -79,7 +79,7 @@ export const saveVC = async (vc: VerifiableCredential): Promise<boolean> => {
  */
 export const getVCs = async (): Promise<VerifiableCredential[]> => {
   try {
-    const vcsString = await AsyncStorage.getItem(VC_STORAGE_KEY);
+    const vcsString = await SecureStore.getItemAsync(VC_STORAGE_KEY);
     if (!vcsString) return [];
     return JSON.parse(vcsString);
   } catch (error) {
@@ -108,7 +108,7 @@ export const deleteVC = async (vcId: string): Promise<boolean> => {
   try {
     const vcs = await getVCs();
     const updatedVCs = vcs.filter((vc) => vc.id !== vcId);
-    await AsyncStorage.setItem(VC_STORAGE_KEY, JSON.stringify(updatedVCs));
+    await SecureStore.setItemAsync(VC_STORAGE_KEY, JSON.stringify(updatedVCs));
     return true;
   } catch (error) {
     console.error("VC 삭제 오류:", error);
@@ -129,7 +129,7 @@ export const hasVCForTicket = async (ticketId: string): Promise<boolean> => {
  */
 export const clearVCStorage = async (): Promise<void> => {
   try {
-    await AsyncStorage.removeItem(VC_STORAGE_KEY);
+    await SecureStore.deleteItemAsync(VC_STORAGE_KEY);
   } catch (error) {
     console.error("VC 스토리지 초기화 오류:", error);
   }

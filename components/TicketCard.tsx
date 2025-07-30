@@ -52,13 +52,19 @@ export function TicketCard({ ticket, onPress, onVCStatusChange }: TicketCardProp
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return { bgColor: "#E1F5E9", textColor: "#0C6B39" };
+        return { bgColor: "#E6F7E9", textColor: "#228B22" }; // 활성: 연두색 배경, 진한 녹색 텍스트
+      case "upcoming":
+        return { bgColor: "#E0F2F7", textColor: "#2196F3" }; // 예정: 연한 하늘색 배경, 파란색 텍스트
       case "used":
-        return { bgColor: "#E5E9F0", textColor: "#4F5E71" };
+        return { bgColor: "#F0F0F0", textColor: "#757575" }; // 사용됨: 밝은 회색 배경, 중간 회색 텍스트
+      case "completed":
+        return { bgColor: "#E8F5E9", textColor: "#607D8B" }; // 완료됨: 매우 연한 녹색-회색 배경, 청회색 텍스트
       case "expired":
-        return { bgColor: "#FDEEEE", textColor: "#B42318" };
+        return { bgColor: "#FCE4EC", textColor: "#D32F2F" }; // 만료됨: 연한 분홍색 배경, 진한 빨간색 텍스트
+      case "cancelled":
+        return { bgColor: "#FCE4EC", textColor: "#D32F2F" }; // 취소됨: 연한 분홍색 배경, 진한 빨간색 텍스트
       default:
-        return { bgColor: "#E5E9F0", textColor: "#4F5E71" };
+        return { bgColor: "#F0F0F0", textColor: "#757575" }; // 기본값: 밝은 회색 배경, 중간 회색 텍스트
     }
   };
 
@@ -90,6 +96,12 @@ export function TicketCard({ ticket, onPress, onVCStatusChange }: TicketCardProp
         return "사용됨";
       case "expired":
         return "만료됨";
+      case "cancelled":
+        return "취소됨";
+      case "completed":
+        return "완료됨";
+      case "upcoming":
+        return "예정됨";
       default:
         return "알 수 없음";
     }

@@ -1,7 +1,10 @@
+import restful from "@/services/Restful";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Constants from "expo-constants";
+import * as Device from "expo-device";
+import * as SecureStore from "expo-secure-store";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -25,13 +28,13 @@ type SignupScreenProps = {
 };
 
 export default function SignupScreen({ navigation }: SignupScreenProps) {
-  const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [deviceId, setDeviceId] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<{
-    name?: string;
+    deviceId?: string;
     email?: string;
     password?: string;
     confirmPassword?: string;
@@ -60,17 +63,22 @@ export default function SignupScreen({ navigation }: SignupScreenProps) {
     }
   };
 
+  useEffect(() => {
+    const getDeviceId = async () => {
+      const deviceId = Device.osInternalBuildId || "";
+      console.log(deviceId);
+      setDeviceId(deviceId);
+    };
+    getDeviceId();
+  }, []);
+
   const validateForm = (): boolean => {
     const newErrors: {
-      name?: string;
+      deviceId?: string;
       email?: string;
       password?: string;
       confirmPassword?: string;
     } = {};
-
-    if (!name) {
-      newErrors.name = "이름을 입력해주세요";
-    }
 
     if (!email) {
       newErrors.email = "이메일을 입력해주세요";
@@ -80,8 +88,8 @@ export default function SignupScreen({ navigation }: SignupScreenProps) {
 
     if (!password) {
       newErrors.password = "비밀번호를 입력해주세요";
-    } else if (password.length < 6) {
-      newErrors.password = "비밀번호는 최소 6자 이상이어야 합니다";
+    } else if (password.length < 7) {
+      newErrors.password = "비밀번호는 최소 7자 이상이어야 합니다";
     }
 
     if (!confirmPassword) {
@@ -101,13 +109,13 @@ export default function SignupScreen({ navigation }: SignupScreenProps) {
 
     try {
       // 실제 회원가입 로직을 여기에 구현
-      // 예: await authService.register(name, email, password);
-
+      // 예: await authService.register(email, password, deviceId);
+      const res = await restful("POST", "/user/v1/auth/register", { email, password, deviceId });
+      console.log(res);
+      await SecureStore.setItemAsync("DID_PRIVATE_KEY", res.data.privateKey);
       // 성공 시 메인 화면으로 이동 (임시로 타임아웃 사용)
-      setTimeout(() => {
-        setIsLoading(false);
-        navigation.replace("Home");
-      }, 1500);
+      setIsLoading(false);
+      navigation.replace("Login");
     } catch (error) {
       setIsLoading(false);
       Alert.alert("오류", "회원가입 중 문제가 발생했습니다.");
@@ -136,14 +144,6 @@ export default function SignupScreen({ navigation }: SignupScreenProps) {
               </View>
 
               <View style={styles.form}>
-                <AuthInput
-                  label="이름"
-                  value={name}
-                  onChangeText={setName}
-                  placeholder="이름을 입력하세요"
-                  error={errors.name}
-                />
-
                 <AuthInput
                   label="이메일"
                   value={email}

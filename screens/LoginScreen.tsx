@@ -1,9 +1,11 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import restful from "@/services/Restful";
 import { useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Constants from "expo-constants";
+import * as Device from "expo-device";
+import * as SecureStore from "expo-secure-store";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -28,7 +30,7 @@ type LoginScreenProps = {
 
 export default function LoginScreen({ navigation }: LoginScreenProps) {
   useFocusEffect(() => {
-    AsyncStorage.getItem("token").then((token) => {
+    SecureStore.getItemAsync("token").then((token) => {
       if (token) {
         navigation.replace("Home");
       }
@@ -37,6 +39,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [deviceId, setDeviceId] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
@@ -82,18 +85,33 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     return Object.keys(newErrors).length === 0;
   };
 
+  useEffect(() => {
+    const getDeviceId = async () => {
+      const deviceId = Device.osInternalBuildId || "";
+      console.log(deviceId);
+      setDeviceId(deviceId);
+    };
+    getDeviceId();
+  }, []);
+
   const handleLogin = async () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
 
     try {
-      // const res = await restful("POST", "/auth/login", { email, password });
-      setIsLoading(false);
-      // await AsyncStorage.setItem("token", res.data.access.token);
-      navigation.replace("Home");
+      const res = await restful("POST", "/user/v1/auth/login", { email, password, deviceId });
+      console.log(res);
+      if (res.code === "OK") {
+        setIsLoading(false);
+        await SecureStore.setItemAsync("token", res.data.accessToken);
+        await SecureStore.setItemAsync("refreshToken", res.data.refreshToken);
+        navigation.replace("Home");
+      } else {
+        setIsLoading(false);
+        Alert.alert("오류", res.message);
+      }
     } catch (error) {
-      console.log(error);
       setIsLoading(false);
       Alert.alert("오류", "로그인 중 문제가 발생했습니다.");
     }
